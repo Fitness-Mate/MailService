@@ -1,6 +1,5 @@
-package fitmate.domain;
+package fitmate.mailserver.domain;
 
-import fitmate.ServiceConst;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -9,9 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -24,14 +22,14 @@ public class VerifiedMail {
     @Column(name = "verified_mail_id")
     private Long Id;
     private String mailAddress;
-    private LocalTime createdDate;
+    private LocalDateTime createdTime;
     private String uuid;
 
     public static VerifiedMail createVerifiedMail(MailVerificationRequest mailVerificationRequest) {
         VerifiedMail result = new VerifiedMail();
         result.mailAddress = mailVerificationRequest.getMailAddress();
         result.uuid = UUID.randomUUID().toString();
-        result.createdDate = LocalTime.now();
+        result.createdTime = LocalDateTime.now();
         log.info("uuid: [{}]", result.uuid);
         return result;
     }

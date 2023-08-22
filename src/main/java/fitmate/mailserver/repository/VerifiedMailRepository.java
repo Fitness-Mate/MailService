@@ -1,11 +1,13 @@
-package fitmate.repository;
+package fitmate.mailserver.repository;
 
-import fitmate.domain.VerifiedMail;
+import fitmate.ServiceConst;
+import fitmate.mailserver.domain.VerifiedMail;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -31,11 +33,22 @@ public class VerifiedMailRepository {
         }
     }
 
-    public VerifiedMail findVerifiedMailByMailAddress(String mail) {
+    public VerifiedMail findByMailAddress(String mail) {
         return em.createQuery("select vm from VerifiedMail vm where vm.mailAddress=:mail ", VerifiedMail.class)
                 .setParameter("mail", mail)
                 .getResultList().stream().findFirst().orElse(null);
 
+    }
+    public List<VerifiedMail> getOutdated() {
+        LocalDateTime deadline = LocalDateTime.now().minusMinutes(ServiceConst.VERIFIED_MAIL_OUTDATED_MINUTES);
+        return em.createQuery("select vm from VerifiedMail vm where vm.createdTime<=:deadline ", VerifiedMail.class)
+                .setParameter("deadline", deadline)
+                .getResultList();
+    }
+    public void deleteVerifiedMail(VerifiedMail vm) {
+        if (vm != null && vm.getId() != null) {
+            em.remove(vm);
+        }
     }
 
 }
