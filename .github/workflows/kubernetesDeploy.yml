@@ -12,6 +12,7 @@ jobs:
         
       - name: application.properties 생성
         run: |
+          echo server.port=${{ secrets.SERVER_PORT }} >>./src/main/resources/application.properties
           echo spring.jpa.hibernate.ddl-auto=update >>./src/main/resources/application.properties
           echo spring.datasource.url=${{ secrets.DATASOURCE_URL }} >>./src/main/resources/application.properties
           echo spring.datasource.username=${{ secrets.DATASOURCE_USERNAME }} >>./src/main/resources/application.properties
