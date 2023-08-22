@@ -1,4 +1,4 @@
-package fitmate;
+package fitmate.mailserver;
 
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;

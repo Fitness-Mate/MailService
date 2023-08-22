@@ -1,6 +1,6 @@
 package fitmate.mailserver.repository;
 
-import fitmate.ServiceConst;
+import fitmate.mailserver.ServiceConst;
 import fitmate.mailserver.domain.VerifiedMail;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

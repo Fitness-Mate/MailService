@@ -1,6 +1,7 @@
 package fitmate.mailserver.controller;
 
 import fitmate.mailserver.domain.VerifiedMail;
+import fitmate.mailserver.dto.UuidDto;
 import fitmate.mailserver.form.RandomCodeVerifyingRequestForm;
 import fitmate.mailserver.form.UuidVerifyingRequestForm;
 import fitmate.mailserver.form.VerificationRequestForm;
@@ -32,16 +33,16 @@ public class MailServiceController {
 
     @PostMapping("/verify/code")
     @ResponseBody
-    public String verifyCode(@RequestBody RandomCodeVerifyingRequestForm randomCodeVerifyingRequestForm) {
+    public UuidDto verifyCode(@RequestBody RandomCodeVerifyingRequestForm randomCodeVerifyingRequestForm) {
         if (randomCodeVerifyingRequestForm.getVerificationCode() == null || randomCodeVerifyingRequestForm.getMailAddress() == null) {
             log.info("bad request for verifyCode");
-            return "bad request";
+            return null;
         }
         VerifiedMail vm = verificationService.createVerifiedMail(randomCodeVerifyingRequestForm);
         if (vm == null) {
-            return "fail";
+            return null;
         }
-        return "ok";
+        return UuidDto.createUuidDto(vm);
     }
 
     @PostMapping("/verify/uuid")

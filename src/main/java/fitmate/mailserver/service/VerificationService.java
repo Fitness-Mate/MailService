@@ -1,6 +1,6 @@
 package fitmate.mailserver.service;
 
-import fitmate.ServiceConst;
+import fitmate.mailserver.ServiceConst;
 import fitmate.mailserver.domain.MailVerificationRequest;
 import fitmate.mailserver.domain.VerifiedMail;
 import fitmate.mailserver.form.RandomCodeVerifyingRequestForm;
