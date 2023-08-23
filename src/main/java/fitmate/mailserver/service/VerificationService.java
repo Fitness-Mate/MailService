@@ -74,9 +74,13 @@ public class VerificationService {
             return null;
         }
         log.info("code verifying success for [{}], [{}]==[{}]", randomCodeVerifyingRequestForm.getMailAddress(), randomCodeVerifyingRequestForm.getVerificationCode(), mvr.getVerificationCode());
-
-        VerifiedMail vm = VerifiedMail.createVerifiedMail(mvr);
-        verifiedMailRepository.save(vm);
+        VerifiedMail vm;
+        if (verifiedMailRepository.findByMailAddress(mvr.getMailAddress()) == null) {
+            vm = VerifiedMail.createVerifiedMail(mvr);
+            verifiedMailRepository.save(vm);
+        } else {
+            vm = verifiedMailRepository.findByMailAddress(mvr.getMailAddress());
+        }
         return vm;
     }
 
