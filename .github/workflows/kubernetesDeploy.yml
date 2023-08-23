@@ -46,14 +46,14 @@ jobs:
       - name: Docker Hub 퍼블리시 # (4)
         run: docker push chanhalee/fitnessmatemail:0.${{ github.run_number }}.${{ github.run_attempt }}
 
-      # - name: SSH Commands
-      #   uses: appleboy/ssh-action@v0.1.6
-      #   with:
-      #     host: ${{ secrets.KUBE_CLUSTER_HOST }}
-      #     username: ubuntu
-      #     key: ${{ secrets.KUBE_CLUSTER_SSH_KEY }}
-      #     port: 22
-      #     script_stop: true
-      #     script: |
-      #       wall "Github Actions in action"
-      #       kubectl set image deployment fitmate-deployment fitmate-backend=chanhalee/fitnessmateback:0.${{ github.run_number }}.${{ github.run_attempt }}
+      - name: SSH Commands
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.KUBE_CLUSTER_HOST }}
+          username: ubuntu
+          key: ${{ secrets.KUBE_CLUSTER_SSH_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            wall "Github Actions in action for mail server update!"
+            kubectl set image deployment fitmate-mail-deployment fitmate-mail=chanhalee/fitnessmatemail:0.${{ github.run_number }}.${{ github.run_attempt }}
