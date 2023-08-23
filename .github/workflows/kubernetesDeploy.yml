@@ -56,4 +56,4 @@ jobs:
           script_stop: true
           script: |
             wall "Github Actions in action for mail server update"
-            kubectl set image deployment fitmate-mail-deployment fitmate-backend=chanhalee/fitnessmatemail:0.${{ github.run_number }}.${{ github.run_attempt }}
+            kubectl set image deployment fitmate-mail-deployment fitmate-mail=chanhalee/fitnessmatemail:0.${{ github.run_number }}.${{ github.run_attempt }}
