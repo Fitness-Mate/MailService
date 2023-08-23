@@ -13,7 +13,6 @@ import java.util.List;
 @Repository
 @RequiredArgsConstructor
 public class VerifiedMailRepository {
-    @PersistenceContext
     private final EntityManager em;
 
     public void save(VerifiedMail verifiedMail) {
@@ -48,6 +47,14 @@ public class VerifiedMailRepository {
     public void deleteVerifiedMail(VerifiedMail vm) {
         if (vm != null && vm.getId() != null) {
             em.remove(vm);
+        }
+    }
+    public void deleteAll() {
+        List<VerifiedMail> vml = em.createQuery("select vm from VerifiedMail vm", VerifiedMail.class)
+                .setMaxResults(1000)
+                .getResultList();
+        for (VerifiedMail verifiedMail : vml) {
+            em.remove(verifiedMail);
         }
     }
 

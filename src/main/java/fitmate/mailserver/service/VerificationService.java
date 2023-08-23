@@ -33,10 +33,14 @@ public class VerificationService {
         // 이미 요청이 진행중인경우
         MailVerificationRequest existingMvr = mailVerificationRequestRepository.findByMailAddress(verificationRequestForm.getMailAddress());
         VerifiedMail existingVm = verifiedMailRepository.findByMailAddress(verificationRequestForm.getMailAddress());
-        if ((existingMvr != null && existingMvr.getCreatedTime().isAfter(LocalDateTime.now().minusMinutes(ServiceConst.VERIFYING_REQUEST_OUTDATED_MINUTES)))
-                || (existingVm != null && existingVm.getCreatedTime().isAfter(LocalDateTime.now().minusMinutes(ServiceConst.VERIFIED_MAIL_OUTDATED_MINUTES)))) {
+        if (existingMvr != null && existingMvr.getCreatedTime().isAfter(LocalDateTime.now().minusMinutes(ServiceConst.VERIFYING_REQUEST_OUTDATED_MINUTES))) {
             log.info("already verification request in process for[{}]", verificationRequestForm.getMailAddress());
-            return "already verification request in process!";
+            return "already verification request in process! try again after 5min";
+
+        }
+        if(existingVm != null && existingVm.getCreatedTime().isAfter(LocalDateTime.now().minusMinutes(ServiceConst.VERIFIED_MAIL_OUTDATED_MINUTES))) {
+            log.info("already verified and verification request in process for[{}]", verificationRequestForm.getMailAddress());
+            return "already verified and verification request in process! try again after 30min";
         }
         // TODO
         // 메일 주소 regex 검증
@@ -76,13 +80,25 @@ public class VerificationService {
         return vm;
     }
 
-    public Boolean checkUuidVital(UuidVerifyingRequestForm uuidVerifyingRequestForm) {
+    public String checkUuidVital(UuidVerifyingRequestForm uuidVerifyingRequestForm) {
         VerifiedMail vm = verifiedMailRepository.findByMailAddress(uuidVerifyingRequestForm.getMailAddress());
-        if (vm != null && vm.getUuid().equals(uuidVerifyingRequestForm.getUuid()) && vm.getCreatedTime().isAfter(LocalDateTime.now().minusMinutes(ServiceConst.VERIFIED_MAIL_OUTDATED_MINUTES))) {
-            log.info("uuid verifying success for [{}], [{}]==[{}]", uuidVerifyingRequestForm.getMailAddress(), vm.getUuid(), uuidVerifyingRequestForm.getUuid());
-            return true;
+        if (vm == null) {
+            return "requested mail did not verified";
         }
-        return false;
+        if (vm.getCreatedTime().isBefore(LocalDateTime.now().minusMinutes(ServiceConst.VERIFIED_MAIL_OUTDATED_MINUTES))) {
+            return "staled mail, please verify again";
+        }
+        if (!vm.getUuid().equals(uuidVerifyingRequestForm.getUuid())) {
+            return "wrong uuid";
+        }log.info("uuid verifying success for [{}], [{}]==[{}]", uuidVerifyingRequestForm.getMailAddress(), vm.getUuid(), uuidVerifyingRequestForm.getUuid());
+
+        return "ok";
+    }
+
+    @Transactional
+    public void purge() {
+        verifiedMailRepository.deleteAll();
+        mailVerificationRequestRepository.deleteAll();
     }
 
 }

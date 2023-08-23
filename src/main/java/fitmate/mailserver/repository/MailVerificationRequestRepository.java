@@ -2,6 +2,7 @@ package fitmate.mailserver.repository;
 
 import fitmate.mailserver.ServiceConst;
 import fitmate.mailserver.domain.MailVerificationRequest;
+import fitmate.mailserver.domain.VerifiedMail;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +54,14 @@ public class MailVerificationRequestRepository {
     public void deleteMailVerificationRequest(MailVerificationRequest mvr) {
         if (mvr != null && mvr.getId() != null) {
             em.remove(mvr);
+        }
+    }
+    public void deleteAll() {
+        List<MailVerificationRequest> vml = em.createQuery("select vm from MailVerificationRequest vm", MailVerificationRequest.class)
+                .setMaxResults(1000)
+                .getResultList();
+        for (MailVerificationRequest mailVerificationRequest : vml) {
+            em.remove(mailVerificationRequest);
         }
     }
 

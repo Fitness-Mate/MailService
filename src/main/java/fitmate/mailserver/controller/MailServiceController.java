@@ -6,13 +6,13 @@ import fitmate.mailserver.form.RandomCodeVerifyingRequestForm;
 import fitmate.mailserver.form.UuidVerifyingRequestForm;
 import fitmate.mailserver.form.VerificationRequestForm;
 import fitmate.mailserver.service.VerificationService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
@@ -23,7 +23,7 @@ public class MailServiceController {
 
     @PostMapping("/verify/mail")
     @ResponseBody
-    public String verifyMail(@RequestBody VerificationRequestForm verificationRequestForm) {
+    public String verifyMail(@RequestBody VerificationRequestForm verificationRequestForm, HttpServletResponse response) {
         if (verificationRequestForm.getMailAddress() == null) {
             log.info("bad request for verifyMail");
             return "bad request";
@@ -33,27 +33,33 @@ public class MailServiceController {
 
     @PostMapping("/verify/code")
     @ResponseBody
-    public UuidDto verifyCode(@RequestBody RandomCodeVerifyingRequestForm randomCodeVerifyingRequestForm) {
+    public UuidDto verifyCode(@RequestBody RandomCodeVerifyingRequestForm randomCodeVerifyingRequestForm, HttpServletResponse response) {
         if (randomCodeVerifyingRequestForm.getVerificationCode() == null || randomCodeVerifyingRequestForm.getMailAddress() == null) {
             log.info("bad request for verifyCode");
-            return null;
+            return UuidDto.createUuidDto("bad request for verifyCode", null);
         }
         VerifiedMail vm = verificationService.createVerifiedMail(randomCodeVerifyingRequestForm);
         if (vm == null) {
-            return null;
+            return UuidDto.createUuidDto("requested mail doesn't exists or wrong code", null);
         }
-        return UuidDto.createUuidDto(vm);
+        return UuidDto.createUuidDto("ok", vm);
     }
 
     @PostMapping("/verify/uuid")
     @ResponseBody
-    public String verifyUuid(@RequestBody UuidVerifyingRequestForm uuidVerifyingRequestForm) {
-        if (uuidVerifyingRequestForm.getUuid() == null || uuidVerifyingRequestForm.getMailAddress()== null) {
+    public String verifyUuid(@RequestBody UuidVerifyingRequestForm uuidVerifyingRequestForm, HttpServletResponse response) {
+        if (uuidVerifyingRequestForm.getUuid() == null || uuidVerifyingRequestForm.getMailAddress() == null) {
             log.info("bad request for verifyUuid");
-            return "bad request";
+            return "verified mail doesn't exist or wrong uuid";
         }
-        if (!verificationService.checkUuidVital(uuidVerifyingRequestForm))
-            return "fail";
-        return "ok";
+        return verificationService.checkUuidVital(uuidVerifyingRequestForm);
+    }
+
+    @PostMapping("/purge")
+    @ResponseBody
+    public String  purge() {
+        verificationService.purge();
+        log.info("!!!purge requested!!!");
+        return "purged";
     }
 }
