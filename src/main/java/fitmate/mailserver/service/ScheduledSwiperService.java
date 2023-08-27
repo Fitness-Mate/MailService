@@ -1,7 +1,9 @@
 package fitmate.mailserver.service;
 
+import fitmate.mailserver.domain.FindPasswordRequest;
 import fitmate.mailserver.domain.MailVerificationRequest;
 import fitmate.mailserver.domain.VerifiedMail;
+import fitmate.mailserver.repository.FindPasswordRequestRepository;
 import fitmate.mailserver.repository.MailVerificationRequestRepository;
 import fitmate.mailserver.repository.VerifiedMailRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +21,9 @@ import java.util.List;
 public class ScheduledSwiperService {
     private final MailVerificationRequestRepository mailVerificationRequestRepository;
     private final VerifiedMailRepository verifiedMailRepository;
+    private final FindPasswordRequestRepository findPasswordRequestRepository;
 
-    @Scheduled(fixedDelay = 30000)
+    @Scheduled(fixedDelay = 300000)
     @Transactional
     public void run() {
         /**
@@ -30,9 +33,8 @@ public class ScheduledSwiperService {
         if (outdatedRequest.isEmpty()) {
             log.info("ScheduledSwiperService[{}]: no outdated requests", LocalDateTime.now());
         } else {
-            log.info("ScheduledSwiperService[{}]: outdated requests", LocalDateTime.now());
             for (MailVerificationRequest mailVerificationRequest : outdatedRequest) {
-                log.info("ScheduledSwiperService[{}]: outdated requests \nAddress=[{}], createdTime:[{}]", LocalDateTime.now(), mailVerificationRequest.getMailAddress(), mailVerificationRequest.getCreatedTime());
+                log.info("ScheduledSwiperService[{}]: outdated requests Address=[{}], createdTime:[{}]", LocalDateTime.now(), mailVerificationRequest.getMailAddress(), mailVerificationRequest.getCreatedTime());
                 mailVerificationRequestRepository.deleteMailVerificationRequest(mailVerificationRequest);
             }
         }
@@ -44,11 +46,21 @@ public class ScheduledSwiperService {
         if (outdatedMail.isEmpty()) {
             log.info("ScheduledSwiperService[{}]: no outdated verified mail", LocalDateTime.now());
         } else {
-            log.info("ScheduledSwiperService[{}]: outdated verified mail", LocalDateTime.now());
             for (VerifiedMail verifiedMail : outdatedMail) {
                 log.info("ScheduledSwiperService[{}]: outdated verified mail \nAddress=[{}], createdTime:[{}]", LocalDateTime.now(), verifiedMail.getMailAddress(), verifiedMail.getCreatedTime());
                 verifiedMailRepository.deleteVerifiedMail(verifiedMail);
             }
         }
+
+        List<FindPasswordRequest> outdatedPasswordRequest = findPasswordRequestRepository.getOutdated();
+        if (outdatedPasswordRequest.isEmpty()) {
+            log.info("ScheduledSwiperService[{}]: no outdated password requests", LocalDateTime.now());
+        } else {
+            for (FindPasswordRequest findPasswordRequest : outdatedPasswordRequest) {
+                log.info("ScheduledSwiperService[{}]: outdated password requests Address=[{}], createdTime:[{}]", LocalDateTime.now(), findPasswordRequest.getMailAddress(), findPasswordRequest.getCreatedTime());
+                findPasswordRequestRepository.deleteFindPasswordRequest(findPasswordRequest);
+            }
+        }
+
     }
 }

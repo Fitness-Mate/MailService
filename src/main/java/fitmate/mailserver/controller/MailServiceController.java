@@ -5,6 +5,7 @@ import fitmate.mailserver.dto.UuidDto;
 import fitmate.mailserver.form.RandomCodeVerifyingRequestForm;
 import fitmate.mailserver.form.UuidVerifyingRequestForm;
 import fitmate.mailserver.form.VerificationRequestForm;
+import fitmate.mailserver.service.FindPasswordService;
 import fitmate.mailserver.service.VerificationService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +21,9 @@ import org.springframework.web.bind.annotation.*;
 public class MailServiceController {
 
     private final VerificationService verificationService;
+    private final FindPasswordService findPasswordService;
 
-    @PostMapping("/verify/mail")
+    @PostMapping("/register/verify/mail")
     @ResponseBody
     public String verifyMail(@RequestBody VerificationRequestForm verificationRequestForm, HttpServletResponse response) {
         if (verificationRequestForm.getMailAddress() == null) {
@@ -31,7 +33,7 @@ public class MailServiceController {
         return verificationService.createRequest(verificationRequestForm);
     }
 
-    @PostMapping("/verify/code")
+    @PostMapping("/register/verify/code")
     @ResponseBody
     public UuidDto verifyCode(@RequestBody RandomCodeVerifyingRequestForm randomCodeVerifyingRequestForm, HttpServletResponse response) {
         if (randomCodeVerifyingRequestForm.getVerificationCode() == null || randomCodeVerifyingRequestForm.getMailAddress() == null) {
@@ -45,7 +47,7 @@ public class MailServiceController {
         return UuidDto.createUuidDto("ok", vm);
     }
 
-    @PostMapping("/verify/uuid")
+    @PostMapping("/register/verify/uuid")
     @ResponseBody
     public String verifyUuid(@RequestBody UuidVerifyingRequestForm uuidVerifyingRequestForm, HttpServletResponse response) {
         if (uuidVerifyingRequestForm.getUuid() == null || uuidVerifyingRequestForm.getMailAddress() == null) {
@@ -55,9 +57,31 @@ public class MailServiceController {
         return verificationService.checkUuidVital(uuidVerifyingRequestForm);
     }
 
+    @PostMapping("/password/verify/mail")
+    @ResponseBody
+    public String findPassword(@RequestBody VerificationRequestForm verificationRequestForm) {
+        if (verificationRequestForm.getMailAddress() == null) {
+            log.info("bad request for verifyMail");
+            return "bad request";
+        }
+        return findPasswordService.createRequest(verificationRequestForm.getMailAddress());
+    }
+
+    @PostMapping("/password/verify/code")
+    @ResponseBody
+    public String findPasswordVerifyCode(@RequestBody RandomCodeVerifyingRequestForm randomCodeVerifyingRequestForm) {
+        if (randomCodeVerifyingRequestForm.getVerificationCode() == null || randomCodeVerifyingRequestForm.getMailAddress() == null) {
+            log.info("bad request for verifyCode");
+            return "bad request for verifyCode";
+        }
+        return findPasswordService.verifyCode(randomCodeVerifyingRequestForm.getMailAddress(), randomCodeVerifyingRequestForm.getVerificationCode());
+    }
+
+
     @PostMapping("/purge")
     @ResponseBody
-    public String  purge() {
+    public String purge() {
+
         verificationService.purge();
         log.info("!!!purge requested!!!");
         return "purged";

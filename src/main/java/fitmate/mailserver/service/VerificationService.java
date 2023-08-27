@@ -30,18 +30,8 @@ public class VerificationService {
     private  String sender;
     @Transactional
     public String createRequest(VerificationRequestForm verificationRequestForm) {
-        // 이미 요청이 진행중인경우
-        MailVerificationRequest existingMvr = mailVerificationRequestRepository.findByMailAddress(verificationRequestForm.getMailAddress());
-        VerifiedMail existingVm = verifiedMailRepository.findByMailAddress(verificationRequestForm.getMailAddress());
-        if (existingMvr != null && existingMvr.getCreatedTime().isAfter(LocalDateTime.now().minusMinutes(ServiceConst.VERIFYING_REQUEST_OUTDATED_MINUTES))) {
-            log.info("already verification request in process for[{}]", verificationRequestForm.getMailAddress());
-            return "already verification request in process! try again after 5min";
-
-        }
-        if(existingVm != null && existingVm.getCreatedTime().isAfter(LocalDateTime.now().minusMinutes(ServiceConst.VERIFIED_MAIL_OUTDATED_MINUTES))) {
-            log.info("already verified and verification request in process for[{}]", verificationRequestForm.getMailAddress());
-            return "already verified and verification request in process! try again after 30min";
-        }
+        // 이미 요청이 진행중인경우 진행중인 요청 엔티티를 삭제
+        mailVerificationRequestRepository.deleteMailVerificationRequest(verificationRequestForm.getMailAddress());
         // TODO
         // 메일 주소 regex 검증
 
@@ -74,13 +64,9 @@ public class VerificationService {
             return null;
         }
         log.info("code verifying success for [{}], [{}]==[{}]", randomCodeVerifyingRequestForm.getMailAddress(), randomCodeVerifyingRequestForm.getVerificationCode(), mvr.getVerificationCode());
-        VerifiedMail vm;
-        if (verifiedMailRepository.findByMailAddress(mvr.getMailAddress()) == null) {
-            vm = VerifiedMail.createVerifiedMail(mvr);
-            verifiedMailRepository.save(vm);
-        } else {
-            vm = verifiedMailRepository.findByMailAddress(mvr.getMailAddress());
-        }
+        verifiedMailRepository.deleteVerifiedMail(randomCodeVerifyingRequestForm.getMailAddress());
+        VerifiedMail vm = VerifiedMail.createVerifiedMail(mvr);
+        verifiedMailRepository.save(vm);
         return vm;
     }
 
