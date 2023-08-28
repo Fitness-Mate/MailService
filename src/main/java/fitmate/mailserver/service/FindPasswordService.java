@@ -41,7 +41,6 @@ public class FindPasswordService {
         return "ok";
     }
 
-    @Transactional
     public String verifyCode(String mailAddress, String code) {
         FindPasswordRequest fpr = findPasswordRequestRepository.findByMailAddress(mailAddress);
         if (fpr == null) {
@@ -54,5 +53,15 @@ public class FindPasswordService {
             return "ERR: wrong verification code";
         }
         return "ok";
+    }
+
+    public void sendNewPassword(String mailAddress, String newPassword) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setFrom(sender.concat("@fitmate.page"));
+        mailMessage.setTo(mailAddress);
+        mailMessage.setText(newPassword);
+        mailMessage.setSubject("Your new password");
+        javaMailSender.send(mailMessage);
+        log.info("sent new password! mail=[{}] newPassword=[{}]", mailAddress, newPassword);
     }
 }

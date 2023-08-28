@@ -3,6 +3,7 @@ package fitmate.mailserver.controller;
 import fitmate.mailserver.domain.VerifiedMail;
 import fitmate.mailserver.dto.UuidDto;
 import fitmate.mailserver.form.RandomCodeVerifyingRequestForm;
+import fitmate.mailserver.form.SendNewPasswordForm;
 import fitmate.mailserver.form.UuidVerifyingRequestForm;
 import fitmate.mailserver.form.VerificationRequestForm;
 import fitmate.mailserver.service.FindPasswordService;
@@ -77,6 +78,14 @@ public class MailServiceController {
         return findPasswordService.verifyCode(randomCodeVerifyingRequestForm.getMailAddress(), randomCodeVerifyingRequestForm.getVerificationCode());
     }
 
+    @PostMapping("/password/send/new")
+    public void sendNewPassword(@RequestBody SendNewPasswordForm sendNewPasswordForm) {
+        if (sendNewPasswordForm.getMailAddress() == null || sendNewPasswordForm.getNewPassword() == null) {
+            log.info("bad request for /password/send/new mail=[{}], newPassword=[{}]", sendNewPasswordForm.getMailAddress(), sendNewPasswordForm.getNewPassword());
+            return;
+        }
+        findPasswordService.sendNewPassword(sendNewPasswordForm.getMailAddress(), sendNewPasswordForm.getNewPassword());
+    }
 
     @PostMapping("/purge")
     @ResponseBody
