@@ -79,13 +79,14 @@ public class MailServiceController {
     }
 
     @PostMapping("/password/send/new")
-    public void sendNewPassword(@RequestBody SendNewPasswordForm sendNewPasswordForm) {
-        log.info("sent new password! mail=[{}] newPassword=[{}]", sendNewPasswordForm.getMailAddress(), sendNewPasswordForm.getNewPassword());
+    @ResponseBody
+    public String sendNewPassword(@RequestBody SendNewPasswordForm sendNewPasswordForm) {
         if (sendNewPasswordForm.getMailAddress() == null || sendNewPasswordForm.getNewPassword() == null) {
             log.info("bad request for /password/send/new mail=[{}], newPassword=[{}]", sendNewPasswordForm.getMailAddress(), sendNewPasswordForm.getNewPassword());
-            return;
+            return "fail";
         }
         findPasswordService.sendNewPassword(sendNewPasswordForm.getMailAddress(), sendNewPasswordForm.getNewPassword());
+        return "ok";
     }
 
     @PostMapping("/purge")
