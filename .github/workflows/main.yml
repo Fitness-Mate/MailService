@@ -1,0 +1,61 @@
+name: Kubernetes Deploy
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 Checkout
+        uses: actions/checkout@v3
+        
+      - name: application.properties 생성
+        run: |
+          echo server.port=${{ secrets.SERVER_PORT }} >>./src/main/resources/application.properties
+          echo spring.jpa.hibernate.ddl-auto=update >>./src/main/resources/application.properties
+          echo spring.datasource.url=${{ secrets.DATASOURCE_URL }} >>./src/main/resources/application.properties
+          echo spring.datasource.username=${{ secrets.DATASOURCE_USERNAME }} >>./src/main/resources/application.properties
+          echo spring.datasource.password=${{ secrets.DATASOURCE_PASSWORD }} >>./src/main/resources/application.properties
+          echo spring.datasource.driver-class-name=org.mariadb.jdbc.Driver >>./src/main/resources/application.properties
+          echo spring.mail.host=${{ secrets.MAIL_HOST }} >>./src/main/resources/application.properties
+          echo spring.mail.port=${{ secrets.MAIL_PORT }} >>./src/main/resources/application.properties
+          echo spring.mail.username=${{ secrets.MAIL_USERNAME }} >>./src/main/resources/application.properties
+          echo spring.mail.password=${{ secrets.MAIL_PASSWORD }} >>./src/main/resources/application.properties
+          echo spring.mail.properties.mail.smtp.auth=true >>./src/main/resources/application.properties
+          echo spring.mail.properties.mail.smtp.ssl.enable=true >>./src/main/resources/application.properties
+          
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+        
+      - name: 스프링부트 애플리케이션 빌드 # (1)
+        run: ./gradlew build
+
+      - name: 도커 이미지 빌드 # (2)
+        run: docker build -t chanhalee/fitnessmatemail:0.${{ github.run_number }}.${{ github.run_attempt }} .
+
+      - name: Docker Hub 로그인 # (3)
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Docker Hub 퍼블리시 # (4)
+        run: docker push chanhalee/fitnessmatemail:0.${{ github.run_number }}.${{ github.run_attempt }}
+
+      - name: SSH Commands
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.DOCKER_HOST }}
+          username: ubuntu
+          key: ${{ secrets.DOCKER_HOST_SSH_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            wall "Github Actions in action for mail server update!"
+            sudo docker stop fitnessmatemail
+            sudo docker rm fitnessmatemail
+            docker run -d -p 8081:8081 --name fitnessmatemail chanhalee/fitnessmatemail:0.${{ github.run_number }}.${{ github.run_attempt }}
