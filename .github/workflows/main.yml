@@ -58,4 +58,4 @@ jobs:
             wall "Github Actions in action for mail server update!"
             sudo docker stop fitnessmatemail
             sudo docker rm fitnessmatemail
-            docker run -d -p 8081:8081 --name fitnessmatemail chanhalee/fitnessmatemail:0.${{ github.run_number }}.${{ github.run_attempt }}
+            sudo docker run -d -p 8081:8081 --name fitnessmatemail chanhalee/fitnessmatemail:0.${{ github.run_number }}.${{ github.run_attempt }}
